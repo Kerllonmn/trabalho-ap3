@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Cobranças</title>
+    <style>
+        /* variáveis de cor: uma forma super prática de organizar as cores do sistema. 
+           Se quisermos mudar a cor de algo, só precisamos mexer aqui em cima! */
+        /* Criamos variáveis para as cores. Se quisermos mudar o azul do sistema inteiro, 
+           só precisamos mexer aqui no --primary uma vez! */
+        :root {
+            --bg: #f4f4f9;          /* Cor do fundo da tela */
+            --text: #333333;        /* Cor do texto geral */
+            --card: #ffffff;        /* Cor de fundo dos blocos/conteiner */
+            --border: #cccccc;      /* Cor das bordinhas */
+            --primary: #007bff;     /* Azul padrão (botões principais) */
+            --success: #28a745;     /* Verde para sucesso (pago) */
+            --danger: #dc3545;      /* Vermelho para erro/atraso */
+            --warning: #ffc107;     /* Amarelo para atenção/cobrar */
+            --alerta-critico: #f8d7da; /* Fundo vermelho bem clarinho */
+            --alerta-critico-texto: #721c24; /* Texto vermelho escuro para ler bem */
+        }
+
+        /* Se o 'body' tiver a classe 'modo-escuro', o CSS joga as cores aqui de baixo 
+           por cima das de cima. É assim que a mágica do tema escuro acontece! */
+        body.modo-escuro {
+            --bg: #222222;
+            --text: #ffffff;
+            --card: #333333;
+            --border: #555555;
+            --primary: #0056b3;
+            --success: #218838;
+            --danger: #c82333;
+            --warning: #e0a800;
+            --alerta-critico: #842029; 
+            --alerta-critico-texto: #ffffff;
+        }
+
+        /* Estilos gerais para todo o sistema */
+        /* O * é um seletor universal que pega todos os elementos da página. 
+           Com ele, a gente define o box-sizing para border-box, que é uma forma mais fácil de lidar com tamanhos e espaçamentos. */
+
+        * { 
+            box-sizing: border-box; /* Evita que o padding/borda estique o tamanho real do elemento */
+            margin: 0; 
+            padding: 0; 
+            font-family: Arial, sans-serif; 
+            border-radius: 0px !important; /* Esse !important força TUDO a ficar quadrado (sem bordas arredondadas) */
+        }
+        
+        body { 
+            background: var(--bg); /* Usa a cor da variável lá de cima */
+            color: var(--text); 
+            padding: 20px; 
+        }
+        
+        /* Bloco branco centralizado que guarda o nosso sistema */
+        .container { 
+            max-width: 900px; 
+            margin: auto; /* Centraliza na tela horizontalmente */
+            background: var(--card); 
+            padding: 20px; 
+            border: 1px solid var(--border); 
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1); /* Sombra de leve no fundo */
+        }
+        
+        h1 { 
+            text-align: center; 
+            margin-bottom: 20px; 
+        }
+        
+        /* Barra onde ficam os botões de controle (Modo Escuro e Dashboard) */
+        .top-bar { 
+            display: flex; 
+            gap: 10px; /* Dá um espacinho entre os botões */
+            margin-bottom: 20px;
+            
+            
+        }
+        
+        .btn-control { 
+           background: var(--card); /* Fundo branco (ou cinza escuro no modo escuro) */
+            color: var(--text); /* Cor do texto baseada na variável */
+            border: 1px solid var(--border); /* Bordinha cinza */
+            padding: 8px 15px; /* Tamanho do botão */
+            cursor: pointer; /* Faz aparecer a 'mãozinha' do mouse ao passar por cima */
+        }
+        
+        .btn-control:hover { background: var(--bg); }
+
+        /* Formulário de cadastro. O flex-wrap faz os campos irem para a linha de baixo se a tela for pequena */
+        form { 
+            display: flex; /* Deixa os campos em linha, um do lado do outro */
+
+            gap: 10px; /* Dá um espacinho entre os campos para não ficar tudo grudado */ 
+            margin-bottom: 20px; /* Espaço entre o formulário e a tabela de baixo */
+        flex-wrap: wrap; /* Permite que os campos que não cabem na mesma linha pulem para a linha de baixo, deixando o layout mais responsivo em telas menores */
+        }
+
+
+        
+        input, select { 
+            flex: 1; /* Faz os campos tentarem ocupar o mesmo espaço horizontal */
+            padding: 10px; /* Tamanho interno dos campos para ficar mais fácil de clicar e digitar */
+            border: 1px solid var(--border); /* Bordinha cinza */
+            background: var(--card); /* Fundo branco (ou cinza escuro no modo escuro) */
+            color: var(--text); /* Cor do texto baseada na variável */
+            min-width: 150px; /* Não deixa o campo esmagar menos que 150px */
+        }
+        
+        button { 
+            padding: 10px 15px; /* Tamanho dos botões */
+            border: none; /* Remove a borda padrão dos botões para usar só a cor de fundo */
+            cursor: pointer; /* Faz aparecer a 'mãozinha' do mouse ao passar por cima */
+            font-weight: bold;/* Deixa o texto dos botões em negrito para destacar */
+            color: white;/* Cor do texto dos botões é sempre branca para garantir boa leitura, mesmo no modo escuro */
+        }
+
+        .btn-add { background: var(--primary); }/* Botão de cadastrar tem a cor azul definida na variável --primary */
+        .btn-add:hover { opacity: 0.9; } /* Dá uma leve sumidinha na cor ao passar o mouse */
+        
+        /* Fileira de botões de filtro */
+
+
+        .filtros { 
+            display: flex; 
+            gap: 5px; 
+            margin-bottom: 20px;
+        
+            
+        }
+        
+        .filtros button { background: #6c757d; color: white; } /* Botões de filtro começam com um cinza escuro */
+        .filtros button:hover { opacity: 0.9; }/* E ficam um pouco mais claros ao passar o mouse por cima */
+        .filtros button.active { background: var(--primary); } /* Botão do filtro que está clicado ganha a cor azul */
+        .filtros button.active:hover { opacity: 0.9; }/* E o hover do botão ativo também fica um pouco mais claro, mantendo a consistência visual */
+        
+        /* Estilização da tabela de dados */
+
+        table { 
+            width: 100%; /* A tabela ocupa toda a largura disponível do container */
+            border-collapse: collapse; /* Cola as bordas das células para não ficar espaço feio entre elas */
+            margin-top: 20px; 
+            border: 1px solid var(--border); /* Borda geral da tabela */
+
+
+
+        }
+        
+        th, td { 
+            padding: 12px;  /* Espaçamento interno das células para o texto não ficar grudado nas bordas */
+            text-align: left;  /* Alinha o texto à esquerda para ficar mais organizado */
+            border: 1px solid var(--border);  /* Borda entre as células para criar um efeito de grade */
+        }
+
+
+        
+        th { 
+            background: #e9ecef; /* Cor cinza pro cabeçalho da tabela */
+            color: #495057; 
+        }
+        
+        body.modo-escuro th {
+            background: #444444;
+
+            color: #ffffff;
+        }
+
+        /* Classe especial que o JavaScript vai colocar na linha se o cliente estiver devendo mais de R$ 500 */
+        .linha-critica {
+            background-color: var(--alerta-critico) !important;
+            color: var(--alerta-critico-texto) !important;
+        }
+
+        /* Cores exclusivas para o texto da coluna Status */
+
+        .status-pago { color: var(--success); font-weight: bold; }
+        .status-atrasado { color: var(--danger); font-weight: bold; }
+        .status-cobrar { color: var(--warning); font-weight: bold; }
+        .status-pendente { color: var(--text); font-weight: bold; }
+        .status-atrasado.linha-critica { color: var(--alerta-critico-texto); font-weight: bold; }
+
+
+        /* Deixa o texto 'Atrasado' legível mesmo dentro da linha vermelha crítica */
+        .linha-critica .status-atrasado { color: var(--danger); text-shadow: 0px 0px 1px black; }
+
+        .acoes { display: flex; gap: 5px; }
+        .acoes button { padding: 5px 10px; font-size: 12px; }
+        
+        .btn-pago { background: var(--success); }
+        .btn-atrasado { background: var(--danger); }
+        .btn-Cobrar { background: var(--warning); color: black; } /* Texto preto no botão amarelo fica melhor de ler */
+        .btn-apagar { background: #6c757d; }
+        .acoes button:hover { opacity: 0.8; }
+
+        .nome-cliente {
+            font-weight: bold;
+            color: #111111;
+        }
+
+        body.modo-escuro .nome-cliente { 
+            color: #ffffff !important; 
+        }
+
+        body.modo-escuro .status-pago { color: var(--success); }
+        body.modo-escuro .status-atrasado { color: var(--danger); }
+        body.modo-escuro .status-cobrar { color: var(--warning); }
+        body.modo-escuro .status-pendente { color: var(--text); }
+        body.modo-escuro .status-atrasado.linha-critica { color: var(--alerta-critico-texto); }
+        body.modo-escuro .status-cobrar.linha-critica { color: var(--alerta-critico-texto); }
+        body.modo-escuro .status-pendente.linha-critica { color: var(--alerta-critico-texto); }
+        
+        /* Estilo da caixinha preta/branca de logs lá embaixo */
+        .painel-logs {
+            margin-top: 30px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            padding: 15px;
+        }
+
+        .painel-logs h3 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 5px;
+            color: var(--text);
+        }
+
+        /* Onde os textos de log aparecem. overflow-y: auto cria uma barra de rolagem se tiver muito texto */
+        .lista-logs {
+            max-height: 100px;
+            overflow-y: auto;
+            font-family: monospace; /* Fonte estilo código de hacker */
+            font-size: 12px;
+            color: #666666;
+        }
+
+        body.modo-escuro .lista-logs { color: #cccccc; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="top-bar">
+            <button class="btn-control" onclick="document.body.classList.toggle('modo-escuro')">Modo Escuro</button>
+            <button class="btn-control" onclick="window.location.href='/dashboard'">Dashboard</button>
+        </div>
+
+        <h1>Gestão de Cobranças</h1>
+        
+        <form id="form-cobranca">
+            <input type="text" id="cliente" placeholder="Nome do Cliente" required>
+            <input type="number" id="valor" placeholder="Valor (R$)" step="0.01" required> <input type="date" id="vencimento" required>
+            <input type="hidden" id="status" value="Pendente">
+
+            <select id="forma_pagamento" required>
+                <option value="" disabled selected hidden>Forma de Pagamento</option>
+                <option value="Pix">Pix</option>
+                <option value="Boleto">Boleto</option>
+                <option value="Cartão">Cartão</option>
+            </select>
+            <button type="submit" class="btn-add">Cadastrar</button>
+        </form>
+
+        <div class="filtros" id="grupo-filtros">
+            <button class="active" onclick="filtrar('Todos', this)">Todas</button>
+            <button onclick="filtrar('Pendente', this)">Pendentes</button>
+            <button onclick="filtrar('Atrasado', this)">Inadimplentes</button>
+            <button onclick="filtrar('Pago', this)">Pagas</button>
+            <button onclick="filtrar('Cobrar', this)">Cobrar</button>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>Valor</th>
+                    <th>Forma</th>
+                    <th>Vencimento</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="lista-cobrancas"></tbody>
+        </table>
+
+        <div class="painel-logs">
+            <h3>Ações Recentes (Logs)</h3>
+            <div id="lista-logs" class="lista-logs">
+                <div>Sistema iniciado. Pronto para uso.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Pegando os elementos do HTML pelo ID para conseguirmos mexer neles aqui no JS
+        const form = document.getElementById('form-cobranca');
+        const lista = document.getElementById('lista-cobrancas');
+        const blocoLogs = document.getElementById('lista-logs');
+        
+        let todasCobrancas = []; // Variável global que vai guardar nossa lista de cobranças vinda do banco
+        let filtroAtual = 'Todos'; // Guarda qual filtro está ativo no momento
+
+        // Cria uma linha nova de log no topo da caixinha de logs
+        function adicionarLog(mensagem) {
+            const hora = new Date().toLocaleTimeString(); // Pega a hora atual do computador (ex: 21:20:05)
+            const novoLog = document.createElement('div');
+            novoLog.innerText = `[${hora}] ${mensagem}`;
+            
+            // insertBefore serve para colocar o log novo ANTES do primeiro log antigo (assim o mais novo fica no topo)
+            blocoLogs.insertBefore(novoLog, blocoLogs.firstChild);
+        }
+
+        // Vai lá na API do Flask (Python) buscar a lista de cobranças gravadas no banco
+        async function carregarCobrancas() {
+            const resposta = await fetch('/api/cobrancas'); // Faz o pedido via rede (padrão GET)
+            todasCobrancas = await resposta.json(); // Transforma o texto que o Python mandou de volta em uma lista JS
+            renderizarTabela(filtroAtual); // Atualiza os desenhos na tabela
+        }
+
+        // Gerencia os cliques nos botões de filtro (Todas, Pagas, Inadimplentes...)
+        function filtrar(status, botao) {
+            filtroAtual = status;
+            
+            // Remove a cor azul de destaque de TODOS os botões de filtro
+            const botoes = document.querySelectorAll('#grupo-filtros button');
+            botoes.forEach(b => b.classList.remove('active'));
+            
+            // Adiciona o azul de destaque apenas no botão que acabou de ser clicado
+            botao.classList.add('active');
+            
+            renderizarTabela(status); // Redesenha a tabela mostrando só o que foi pedido
+        }
+
+        // Formata a data do padrão americano (AAAA-MM-DD) para o brasileiro (DD/MM/AAAA)
+        function formatarData(dataString) {
+            const [ano, mes, dia] = dataString.split('-'); // Quebra o texto nos traços
+            return `${dia}/${mes}/${ano}`; // Remonta as peças na ordem certa
+        }
+
+        // Função principal que limpa a tabela e reconstrói as linhas baseada no filtro escolhido
+        function renderizarTabela(filtro) {
+            lista.innerHTML = ''; // Limpa tudo que estava escrito dentro do <tbody>
+            
+            // Se o filtro for 'Todos', pega a lista cheia. Se não, filtra só as que batem com o status
+            const filtradas = filtro === 'Todos' 
+                ? todasCobrancas 
+                : todasCobrancas.filter(c => c.status === filtro);
+
+            // Se a lista estiver zerada para aquele filtro, mostra um aviso amigável
+            if(filtradas.length === 0) {
+                lista.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px;">Nenhum registro encontrado.</td></tr>`;
+                return;
+            }
+
+            // Faz um laço de repetição (loop) para desenhar linha por linha de cada cobrança
+            filtradas.forEach(c => {
+                const tr = document.createElement('tr'); // Cria a tag <tr> da linha
+                
+                // REGRA DE NEGÓCIO: Se estiver atrasado E o valor for maior que R$ 500, pinta a linha de vermelho crítico
+                if (c.status === 'Atrasado' && c.valor > 500) {
+                    tr.classList.add('linha-critica');
+                }
+                
+                let { status: s } = c;
+                // Escolhe qual classe CSS de cor o status vai receber na tela
+                let classeStatus = s === 'Pago' ? 'status-pago' : s === 'Atrasado' ? 'status-atrasado' : s === 'Cobrar' ? 'status-cobrar' : 'status-pendente';
+                
+                // Injeta as tags <td> com os dados dinâmicos dentro da linha <tr>
+                tr.innerHTML = `
+                    <td class="nome-cliente">${c.cliente}</td>
+                    <td>R$ ${c.valor.toFixed(2)}</td> <td>${c.forma_pagamento}</td>
+                    <td>${formatarData(c.vencimento)}</td>
+                    <td class="${classeStatus}">${c.status}</td>
+                    <td class="acoes">
+                        <button class="btn-pago" onclick="mudarStatus(${c.id}, 'Pago', '${c.cliente}')">Pago</button>
+                        <button class="btn-atrasado" onclick="mudarStatus(${c.id}, 'Atrasado', '${c.cliente}')">Atrasou</button>
+                        <button class="btn-Cobrar" onclick="mudarStatus(${c.id}, 'Cobrar', '${c.cliente}')">Cobrar</button>
+                        <button class="btn-apagar" onclick="deletar(${c.id}, '${c.cliente}')">Apagar</button>
+                    </td>
+                `;
+                lista.appendChild(tr); // Adiciona a linha de verdade dentro do nosso HTML
+            });
+        }
+
+        // Escuta o momento em que o usuário aperta o botão 'Cadastrar' ou dá Enter no formulário
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Impede a página de recarregar (o comportamento padrão do HTML que a gente não quer)
+            
+            // Pega as palavras/números digitados pelo usuário nos inputs
+            const cliente = document.getElementById('cliente').value;
+            const valor = document.getElementById('valor').value;
+            const vencimento = document.getElementById('vencimento').value;
+            const forma_pagamento = document.getElementById('forma_pagamento').value;
+
+            // Faz uma requisição POST enviando os dados em formato JSON pro servidor Python salvar no banco
+            await fetch('/api/cobrancas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cliente, valor, vencimento, forma_pagamento })
+            });
+            
+            form.reset(); // Limpa as caixas de texto do formulário para o próximo cadastro
+            adicionarLog(`Nova cobrança de R$ ${parseFloat(valor).toFixed(2)} criada para o cliente: ${cliente}.`);
+            carregarCobrancas(); // Recarrega a tabela para a nova cobrança aparecer na lista
+        });
+
+        // Função acionada quando clicamos nos botões coloridos de mudar status da linha
+        async function mudarStatus(id, novoStatus, nomeCliente) {
+            // Envia uma requisição PUT (Usada para atualizações) contendo o novo status do ID escolhido
+            await fetch(`/api/cobrancas/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: novoStatus })
+            });
+            adicionarLog(`Status do cliente ${nomeCliente} alterado para: ${novoStatus}.`);
+            carregarCobrancas(); // Recarrega tudo para ver as alterações na tela
+        }
+
+        // Função acionada ao clicar no botão cinza 'Apagar'
+        async function deletar(id, nomeCliente) {
+            // Dispara aquela caixinha nativa do navegador de "Tem certeza?" (Retorna true ou false)
+            if(confirm("Deseja apagar este registro?")) {
+                // Se o usuário clicar em OK, envia o comando DELETE para a URL da API
+                await fetch(`/api/cobrancas/${id}`, { method: 'DELETE' });
+                adicionarLog(`O registro do cliente ${nomeCliente} foi excluído do sistema.`);
+                carregarCobrancas(); // Recarrega a tela para sumir com a linha deletada
+            }
+        }
+
+        // Essa linha roda sozinha assim que a página abre no navegador pela primeira vez. 
+        // É ela quem puxa os primeiros dados do banco para preencher o sistema vazio!
+        carregarCobrancas();
+    </script>
+</body>
+</html>

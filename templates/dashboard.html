@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Financeiro</title>
+    <style>
+        /* variáveis de cores para temas claro e escuro */
+
+
+        :root {
+            --bg: #f4f4f9;
+            --text: #333333;
+            --card: #ffffff;
+            --border: #cccccc;
+            --primary: #007bff;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --alerta-critico: #f8d7da;
+            --alerta-critico-texto: #721c24;
+        }
+
+        body.modo-escuro {
+            --bg: #222222;
+            --text: #ffffff;
+            --card: #333333;
+            --border: #555555;
+            --primary: #3b82f6;
+            --success: #2da44e;
+            --danger: #f85149;
+            --warning: #f2cc60;
+            --alerta-critico: #842029;
+            --alerta-critico-texto: #ffffff;
+        }
+
+        /* estilização geral    */
+        * { 
+            box-sizing: border-box; /* Evita que o padding e a borda aumentem o tamanho total dos elementos */
+
+            margin: 0; /* Remove as margens padrão */ 
+            padding: 0; /* Remove os espaçamentos internos padrão */
+            font-family: Arial, sans-serif; /* Fonte limpa e legível */
+
+            border-radius: 0px !important; /* Tudo estritamente quadrado */
+        }
+
+        body { 
+            background: var(--bg); /* Cor de fundo definida pela variável */
+
+            color: var(--text); 
+            padding: 20px; 
+        }
+
+        .container { 
+            max-width: 850px;/* Largura máxima para evitar que o conteúdo fique muito esticado em telas grandes */ 
+            margin: auto; /* Centraliza o container horizontalmente */
+            background: var(--card); 
+            padding: 20px; 
+            border: 1px solid var(--border); 
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1); /* Sombra leve para destacar o container do fundo */
+        }
+        
+        h1 { 
+            text-align: center; 
+            margin-bottom: 20px; 
+        }
+
+        /* barra de controle (botões)   */
+        .top-bar { 
+            display: flex; 
+            gap: 10px; 
+            margin-bottom: 20px; 
+            flex-wrap: wrap;
+        }
+
+        .btn-control { 
+            background: var(--card); 
+            color: var(--text); 
+            border: 1px solid var(--border); 
+            padding: 8px 15px; 
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .btn-control:hover { 
+            background: var(--bg); 
+        }
+
+        /* grid de cards financeiros 
+         */
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .card-financeiro {
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 15px;
+        }
+
+        .card-financeiro h3 {
+            font-size: 14px;
+            color: #777777;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        body.modo-escuro .card-financeiro h3 {
+            color: #bbbbbb;
+        }
+
+        .card-financeiro p {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .total-geral { color: var(--primary); }
+        .total-pago { color: var(--success); }
+        .total-atrasado { color: var(--danger); }
+        .total-cobrar { color: var(--warning); }
+
+        /* SEÇÃO DO DASHBOARD  DA TABELA 
+        */
+        .secao-dashboard {
+            margin-top: 25px;
+        }
+
+        .secao-dashboard h2 {
+            margin-bottom: 10px;
+            font-size: 18px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 5px;
+        }
+
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            border: 1px solid var(--border);
+            margin-bottom: 10px;
+        }
+        
+        th, td { 
+            padding: 12px; 
+            text-align: left; 
+            border: 1px solid var(--border); 
+            color: var(--text);
+        }
+        
+        th { 
+            background: #e9ecef; 
+            color: #495057; 
+            font-weight: bold;
+        }
+        
+        body.modo-escuro th {
+            background: #444444;
+            color: #ffffff;
+        }
+
+        .texto-perigo {
+            color: var(--danger);
+            font-weight: bold;
+        }
+        
+        .nome-devedor {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="top-bar">
+            <button class="btn-control" onclick="window.location.href='/'">Voltar para Cadastro</button>
+            <button class="btn-control" onclick="document.body.classList.toggle('modo-escuro')">Modo Escuro</button>
+            <button class="btn-control" onclick="carregarDadosDashboard()">Atualizar Dashboard</button>
+            
+        </div>
+
+        <h1>Dashboard Financeiro</h1>
+
+        <div class="grid-cards">
+            <div class="card-financeiro">
+                <h3>Total Geral</h3>
+                <p id="dash-geral" class="total-geral">R$ 0,00</p>
+            </div>
+            <div class="card-financeiro">
+                <h3>Total Pago</h3>
+                <p id="dash-pago" class="total-pago">R$ 0,00</p>
+            </div>
+            <div class="card-financeiro">
+                <h3>Inadimplentes</h3>
+                <p id="dash-atrasado" class="total-atrasado">R$ 0,00</p>
+            </div>
+            <div class="card-financeiro">
+                <h3>A Cobrar</h3>
+                <p id="dash-cobrar" class="total-cobrar">R$ 0,00</p>
+            </div>
+        </div>
+
+        <div class="secao-dashboard">
+            <h2>Quantidade de Registros</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Status da Cobrança</th>
+                        <th>Quantidade de Clientes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Pendentes</td>
+                        <td id="qtd-pendente">0</td>
+                    </tr>
+                    <tr>
+                        <td>Inadimplentes (Atrasados)</td>
+                        <td id="qtd-atrasado">0</td>
+                    </tr>
+                    <tr>
+                        <td>Pagas</td>
+                        <td id="qtd-pago">0</td>
+                    </tr>
+                    <tr>
+                        <td>Para Cobrar</td>
+                        <td id="qtd-cobrar">0</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="secao-dashboard">
+            <h2 style="color: var(--danger);">Clientes Inadimplentes (Em Atraso)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Valor Devido</th>
+                        <th>Vencimento</th>
+                        <th>Forma Prevista</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-devedores">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function formatarData(dataString) {
+            if(!dataString) return '-';
+            const [ano, mes, dia] = dataString.split('-');
+            return `${dia}/${mes}/${ano}`;
+        }
+
+        async function carregarDadosDashboard() {
+            try {
+                const resposta = await fetch('/api/cobrancas');
+                const cobrancas = await resposta.json();
+
+                const tabelaDevedores = document.getElementById('lista-devedores');
+                tabelaDevedores.innerHTML = ''; 
+
+                // Variáveis para somar valores monetários
+                let somaGeral = 0;
+                let somaPago = 0;
+                let somaAtrasado = 0;
+                let somaCobrar = 0;
+
+                // Variáveis quantitativas
+                let qtdPendente = 0;
+                let qtdAtrasado = 0;
+                let qtdPago = 0;
+                let qtdCobrar = 0;
+                
+                let temDevedor = false;
+
+                cobrancas.forEach(c => {
+                    somaGeral += c.valor;
+
+                    if (c.status === 'Pago') {
+                        somaPago += c.valor;
+                        qtdPago++;
+                    } else if (c.status === 'Atrasado') {
+                        somaAtrasado += c.valor;
+                        qtdAtrasado++;
+                        temDevedor = true;
+
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td class="nome-devedor">${c.cliente}</td>
+                            <td class="texto-perigo">R$ ${c.valor.toFixed(2)}</td>
+                            <td>${formatarData(c.vencimento)}</td>
+                            <td>${c.forma_pagamento || '-'}</td>
+                        `;
+                        tabelaDevedores.appendChild(tr);
+
+                    } else if (c.status === 'Cobrar') {
+                        somaCobrar += c.valor;
+                        qtdCobrar++;
+                    } else if (c.status === 'Pendente') {
+                        qtdPendente++;
+                    }
+                });
+
+                if (!temDevedor) {
+                    tabelaDevedores.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 15px;">Nenhum cliente inadimplente encontrado.</td></tr>`;
+                }
+
+                // Atualiza os Cards superiores
+                document.getElementById('dash-geral').innerText = 'R$ ' + somaGeral.toFixed(2);
+                document.getElementById('dash-pago').innerText = 'R$ ' + somaPago.toFixed(2);
+                document.getElementById('dash-atrasado').innerText = 'R$ ' + somaAtrasado.toFixed(2);
+                document.getElementById('dash-cobrar').innerText = 'R$ ' + somaCobrar.toFixed(2);
+
+                // Atualiza a tabela quantitativa
+                document.getElementById('qtd-pendente').innerText = qtdPendente;
+                document.getElementById('qtd-atrasado').innerText = qtdAtrasado;
+                document.getElementById('qtd-pago').innerText = qtdPago;
+                document.getElementById('qtd-cobrar').innerText = qtdCobrar;
+                
+            } catch (erro) {
+                console.error("Erro ao carregar dados do dashboard:", erro);
+            }
+        }
+
+        // Executa a função automaticamente ao carregar a página
+        carregarDadosDashboard();
+    </script>
+</body>
+</html>
