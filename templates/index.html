@@ -231,7 +231,7 @@
         .lista-logs {
             max-height: 100px;
             overflow-y: auto;
-            font-family: monospace; /* Fonte estilo código de hacker */
+            font-family: monospace;
             font-size: 12px;
             color: #666666;
         }
@@ -332,7 +332,7 @@
             renderizarTabela(status); // Redesenha a tabela mostrando só o que foi pedido
         }
 
-        // Formata a data do padrão americano (AAAA-MM-DD) para o brasileiro (DD/MM/AAAA)
+        // Formata a data do padrão  (AAAA-MM-DD) para o (DD/MM/AAAA)
         function formatarData(dataString) {
             const [ano, mes, dia] = dataString.split('-'); // Quebra o texto nos traços
             return `${dia}/${mes}/${ano}`; // Remonta as peças na ordem certa
